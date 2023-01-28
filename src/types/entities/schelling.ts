@@ -62,18 +62,7 @@ export class SchellingGame {
 		block?: BlockDetails
 	): Player {
 		if (!this.players.has(overlay)) {
-			this.players.set(overlay, new Player(overlay, account, block, this.size))
-			let line = 0 // Reassign the lines to sort the new player into place
-			this.players.forEachPair((overlay, player) => {
-				if (this.isMyOverlay(player.overlay))
-					// First all of the highlighted overlays
-					player.setLine(line++)
-			})
-			this.players.forEachPair((overlay, player) => {
-				if (!this.isMyOverlay(player.overlay))
-					// Then everyone else
-					player.setLine(line++)
-			})
+			this.players.set(overlay, new Player(overlay, account, block))
 		} else {
 			// See if we need to learn an account for an overlay
 			const player = this.players.get(overlay)!
@@ -109,7 +98,7 @@ export class SchellingGame {
 
 	// --- game logic ---
 
-	public newBlock(block: BlockDetails, roundAnchor?: string): string {
+	public newBlock(block: BlockDetails, roundAnchor?: string) {
 		const roundNo = SchellingGame.roundFromBlockNo(block.blockNo)
 		if (roundNo != this.currentRoundNo) {
 			// When the round changes, by defintion, no one is playing
@@ -123,7 +112,6 @@ export class SchellingGame {
 						round.lastBlock = this.lastBlock
 						round.unclaimed = true
 					}
-					round.render() // Render here to clear the Round Players box
 				} else
 					Logging.showLogError(
 						`Previous round ${this.currentRoundNo} Not found?`
@@ -155,21 +143,6 @@ export class SchellingGame {
 			length = blocksPerRound / 2
 			elapsed = offset - blocksPerRound / 2 + 1
 		}
-		const remaining = length - elapsed
-		const percent = Math.floor((elapsed * 100) / length)
-
-		let line = `${Round.roundString(block.blockNo)}`
-		if (leftInRound > 0) line += `+${leftInRound}`
-		if (round.anchor) line += ` ${fmtAnchor(round.anchor)}`
-		if (phase == 'claim' && roundAnchor) {
-			if (!round.anchor) line += ' next' // Fill in the gap before ->
-			line += `->${fmtAnchor(roundAnchor)}`
-		}
-		line += ` ${percent}% of ${phase}`
-		if (remaining != leftInRound) line += ` +${remaining} blocks`
-		// else if (phase == 'claim' && roundAnchor)
-		// 	line += `, next anchor ${fmtAnchor(roundAnchor)}`
-		return line
 	}
 
 	// --- commit
@@ -191,8 +164,6 @@ export class SchellingGame {
 			Logging.showError(
 				`${Round.roundString(block.blockNo)} Player ${leftId(overlay, 16)}`
 			)
-
-		round.render()
 	}
 
 	// --- reveal
@@ -244,9 +215,6 @@ export class SchellingGame {
 					16
 				)} reveal ${depth} ${shortId(hash, 16)}`
 			)
-
-		// render the round
-		round.render()
 	}
 
 	// --- claim
@@ -299,9 +267,6 @@ export class SchellingGame {
 					16
 				)} claim ${winner.depth} ${shortId(winner.hash, 16)}`
 			)
-
-		// render the round
-		round.render()
 	}
 
 	// --- stake logic (slashing and freezing handled in claim)

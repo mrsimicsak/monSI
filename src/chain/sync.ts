@@ -24,8 +24,6 @@ import {
 	Round,
 	StakeFreeze,
 	StakeSlash,
-	Ui,
-	BOXES,
 } from '../types/entities'
 
 import { shortBZZ, fmtAccount, specificLocalTime } from '../lib'
@@ -320,21 +318,6 @@ export class ChainSync {
 			)}`
 			priceText += '{/left}'
 			const offsetLine = game.size + 1 // Keep room for the getRpcUrl
-			Ui.getInstance().lineSetterCallback(BOXES.ALL_PLAYERS)(
-				offsetLine,
-				`{center}${config.chain.name} getGasPrice{/center}`,
-				-1
-			)
-			Ui.getInstance().lineSetterCallback(BOXES.ALL_PLAYERS)(
-				offsetLine + 1,
-				`{center}${this.gasPriceMonitor.history}{/center}`,
-				-1
-			)
-			Ui.getInstance().lineInserterCallback(BOXES.ALL_PLAYERS)(
-				offsetLine + 2,
-				priceText,
-				-1
-			)
 
 			const dt = new Date(block.timestamp * 1000).toISOString()
 			const gas = `${Gas.gasUtilization(block)}% ${Gas.gasPriceToString(
@@ -393,29 +376,11 @@ export class ChainSync {
 						block.timestamp - this.lastBlock.blockTimestamp / 1000
 				  )}s`
 
-		Ui.getInstance().lineSetterCallback(BOXES.BLOCKS)(
-			0,
-			`{center}${this.baseGasMonitor.history}{/center}`,
-			-1 // Don't timestamp this line
-		)
-		Ui.getInstance().lineInserterCallback(BOXES.BLOCKS)(
-			1,
-			`${block.number} ${deltaBlockTime} ${
-				this.baseGasMonitor.lastPrice
-			} ${this.baseGasMonitor.percentColor()}%`,
-			block.timestamp * 1000
-		)
-
 		const blockDetails: BlockDetails = {
 			blockNo: block.number,
 			blockTimestamp: block.timestamp * 1000, // always set to milliseconds
 		}
-		const line = game.newBlock(blockDetails, roundAnchor)
-		Ui.getInstance().lineSetterCallback(BOXES.ROUND_PLAYERS)(
-			0,
-			line,
-			block.timestamp * 1000
-		)
+		game.newBlock(blockDetails, roundAnchor)
 
 		block.transactions.forEach(async (tx) => {
 			if (tx.to) {
@@ -429,12 +394,6 @@ export class ChainSync {
 					)
 			}
 		})
-		// I'd like to only refresh the top line if we processed something, but forEach precludes this
-		Ui.getInstance().lineSetterCallback(BOXES.ROUND_PLAYERS)(
-			0,
-			line,
-			block.timestamp * 1000
-		)
 	}
 
 	private async processRedistributionTx(
@@ -457,11 +416,6 @@ export class ChainSync {
 				tx.hash
 			}`
 			Logging.showLogError(t)
-			Ui.getInstance().lineInserterCallback(BOXES.TRANSACTIONS)(
-				1,
-				t,
-				blockTimestamp * 1000
-			)
 			this.numFailedTransactions++
 			return
 		}
@@ -477,11 +431,6 @@ export class ChainSync {
 				tx.hash
 			}`
 			Logging.showLogError(t)
-			Ui.getInstance().lineInserterCallback(BOXES.TRANSACTIONS)(
-				1,
-				t,
-				blockTimestamp * 1000
-			)
 			Logging.showLog(`parseTransaction(${tx.hash}) failed with ${e}`)
 			return
 		}
@@ -582,11 +531,6 @@ export class ChainSync {
 			)} ${Gas.gasPriceToString(tx.maxPriorityFeePerGas)}`
 		}
 		Logging.showLog(t)
-		Ui.getInstance().lineInserterCallback(BOXES.TRANSACTIONS)(
-			1,
-			t,
-			blockTimestamp * 1000
-		)
 	}
 
 	private async processStakeLog(logs: Log[]) {

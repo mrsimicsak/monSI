@@ -5,7 +5,7 @@ import pack from '../package.json' assert { type: 'json' }
 import config from './config'
 
 import { ChainSync } from './chain'
-import { SchellingGame, Ui } from './types/entities'
+import { SchellingGame } from './types/entities'
 import { utils } from 'ethers'
 
 // sane defaults for the environment variables (if not set)
@@ -63,9 +63,6 @@ async function run(overlays: string[], options: CLIOptions) {
 			game.highlightOverlay(overlay)
 		}
 	}
-
-	// start the TUI
-	Ui.getInstance()
 }
 
 function cliParseInt(value: string, _: unknown): number {

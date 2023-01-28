@@ -7,7 +7,6 @@ import {
 	shortCurrency,
 	shortETH,
 } from './formatUnits'
-import { colorValue, colorSpecificDelta, colorDelta } from './formatUi'
 import {
 	shortId,
 	leftId,
@@ -26,9 +25,6 @@ export {
 	formatSi,
 	shortCurrency,
 	shortETH,
-	colorValue,
-	colorSpecificDelta,
-	colorDelta,
 	shortId,
 	leftId,
 	fmtAccount,

@@ -1,5 +1,4 @@
 import { currentLocalTime, specificLocalTime } from '../lib'
-import { Ui, BOXES } from '../types/entities'
 
 export default class Logging {
 	private static instance: Logging
@@ -45,11 +44,6 @@ export default class Logging {
 		if (this._debugging) {
 			console.error(`${specificLocalTime(when)} ${tag ? `[${tag}]` : ''}${msg}`)
 		}
-
-		// output to the output box
-		if (this._lastErrorTag != tag)
-			Ui.getInstance().insertTopCallback(BOXES.OUTPUT)(msg, when) // Scroll down
-		else Ui.getInstance().lineSetterCallback(BOXES.OUTPUT)(0, msg, when) // Replace top line
 
 		this._lastErrorTag = tag || ''
 	}
