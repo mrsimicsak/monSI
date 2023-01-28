@@ -10,7 +10,7 @@ import { utils } from 'ethers'
 
 // sane defaults for the environment variables (if not set)
 const DEFAULT_PRELOAD_ROUNDS = 4
-const DEFAULT_RPC_ENDPOINT = 'ws://goerli-geth.dappnode:8546'
+const DEFAULT_RPC_ENDPOINT = 'ws://localhost:8545'
 
 interface CLIOptions {
 	mainnet: boolean
@@ -30,7 +30,7 @@ async function run(overlays: string[], options: CLIOptions) {
 	const { mainnet, rpcEndpoint, rounds, block, round, singleRound } = options
 
 	// Set the chain ID
-	config.setChainId(mainnet ? 100 : 5)
+	config.setChainId(100)
 
 	const chainsync = ChainSync.getInstance()
 
@@ -106,7 +106,6 @@ async function main() {
 			'Overlay addresses for highlighting',
 			cliParseOverlay
 		)
-		.addOption(new Option('--mainnet', 'Use Swarm mainnet').default(false))
 		.addOption(
 			new Option(
 				'--rpc-endpoint <string>',

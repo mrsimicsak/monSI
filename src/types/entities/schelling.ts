@@ -80,6 +80,7 @@ export class SchellingGame {
 	public getOrCreateRound(roundNo: number, block: BlockDetails): Round {
 		// create the round if it doesn't exist
 		if (!this.rounds.has(roundNo)) {
+			console.log(block.blockNo, roundNo, 'Round Start')
 			this.players.forEachPair((overlay, player) => {
 				player.notPlaying()
 			})
@@ -111,6 +112,7 @@ export class SchellingGame {
 					if (!round.claim) {
 						round.lastBlock = this.lastBlock
 						round.unclaimed = true
+						console.log(block.blockNo, round.id, 'Round not claimed')
 					}
 				} else
 					Logging.showLogError(

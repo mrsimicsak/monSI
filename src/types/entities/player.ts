@@ -78,6 +78,8 @@ export class Player {
 		if (this.frozenThawBlock) {
 			this.frozenThawBlock = undefined
 		}
+
+		console.log(block.blockNo, this.overlay, 'commit')
 	}
 
 	reveal(block: BlockDetails, round: number, hash: string, depth: number) {
@@ -85,6 +87,8 @@ export class Player {
 		this.lastAction = 'reveal'
 		this._isPlaying = true
 		this.reveals[round] = { hash, depth }
+
+		console.log(block.blockNo, this.overlay, 'reveal')
 	}
 
 	/**
@@ -98,6 +102,8 @@ export class Player {
 		this._isPlaying = true
 		this.amount = this.amount.add(_amount)
 		this.winCount++
+
+		console.log(block.blockNo, this.overlay, 'claim')
 	}
 
 	/**
@@ -111,6 +117,8 @@ export class Player {
 		this.frozenThawBlock = thawBlock
 		this.freezeCount++
 		const elapsed = thawBlock - block.blockNo
+
+		console.log(block.blockNo, this.overlay, 'frozen')
 
 		Logging.showError(
 			`${this.overlayString()} {blue-fg}Frozen{/blue-fg} for ${elapsed} blocks or ${
