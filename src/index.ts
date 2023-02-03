@@ -5,8 +5,10 @@ import pack from '../package.json' assert { type: 'json' }
 import config from './config'
 
 import { ChainSync } from './chain'
-import { SchellingGame } from './types/entities'
+import { Round, SchellingGame } from './types/entities'
 import { utils } from 'ethers'
+
+import { Logging } from './utils'
 
 import pkg from 'pg'
 const { Client } = pkg
@@ -16,7 +18,6 @@ export const client = new Client(DbConfig)
 import { DbConfig } from './dbconfig'
 
 // sane defaults for the environment variables (if not set)
-const DEFAULT_PRELOAD_ROUNDS = 4
 const DEFAULT_RPC_ENDPOINT = 'ws://localhost:8545'
 
 interface CLIOptions {
@@ -36,7 +37,14 @@ interface CLIOptions {
 async function run(overlays: string[], options: CLIOptions) {
 	const { mainnet, rpcEndpoint, rounds, block, round, singleRound } = options
 
-	await client.connect()
+	try {
+		console.log('Connecting to database.')
+		await client.connect()
+		console.log('Sucessfully connected to database.')
+	} catch (err) {
+		console.log(err)
+		process.exit(1)
+	}
 
 	// Set the chain ID
 	config.setChainId(100)
@@ -47,22 +55,43 @@ async function run(overlays: string[], options: CLIOptions) {
 	await chainsync.init(rpcEndpoint)
 
 	let startBlock = await chainsync.getCurrentBlock()
+	console.log('Current block is: ', startBlock)
+
 	let endBlock
 
-	// load only a single round and stop
-	if (singleRound) {
-		startBlock = singleRound * config.game.blocksPerRound
-		endBlock = startBlock + config.game.blocksPerRound - 1 // inclusive
+	try {
+		console.log('Attempting to retrive last block from database.')
+		let results = await client.query(
+			`select block from public.player_action_log order by block desc limit 1`
+		)
+
+		if (results.rowCount > 0) {
+			endBlock = results.rows[0].block + 1
+			console.log('resuming from block: ', endBlock)
+		} else {
+			endBlock = 25527075 // mainnet staking contract creation
+			console.log('No blocks found in database, starting from: ', endBlock)
+		}
+	} catch (err) {
+		Logging.showError(`Failed to load last block from database: ${err}`)
+		process.exit(1)
 	}
-	// preload from the given block
-	else if (block !== undefined) startBlock = block
-	// preload from the given round
-	else if (round) startBlock = round * config.game.blocksPerRound
-	// preload the last 'rounds' rounds
-	else if (rounds) startBlock -= rounds * config.game.blocksPerRound
+
+	console.log('Need to sync ', startBlock - endBlock, ' blocks')
+	let startingRound = Round.roundFromBlock(startBlock)
+	let endingRound = Round.roundFromBlock(endBlock)
+	console.log(
+		'Starting from round: ',
+		endingRound,
+		', ending at: ',
+		startingRound,
+		', Syncing ',
+		startingRound - endingRound,
+		' rounds.'
+	)
 
 	// start the chain sync
-	chainsync.start(startBlock, endBlock)
+	chainsync.start(endBlock, startBlock)
 
 	// start the game
 	const game = SchellingGame.getInstance()
@@ -123,42 +152,9 @@ async function main() {
 				.env('RPC_URL')
 				.default(DEFAULT_RPC_ENDPOINT)
 		)
-		.addOption(
-			new Option(
-				'-r, --rounds [rounds]',
-				'Load the last number of rounds from the blockchain'
-			)
-				.conflicts(['block, round, singleRound'])
-				.default(DEFAULT_PRELOAD_ROUNDS) // Startup can take a LONG time if you make this large!
-				.argParser(cliParseInt)
-		)
-		.addOption(
-			new Option('-b, --block [block]', 'Block number to start loading from')
-				.conflicts(['rounds, round, singleRound'])
-				.argParser(cliParseInt)
-		)
-		.addOption(
-			new Option('-R, --round [round]', 'Round number to start loading from')
-				.conflicts(['rounds, block, singleRound'])
-				.argParser(cliParseInt)
-		)
-		.addOption(
-			new Option('-S, --singleRound [round]', 'Load a single round and stop')
-				.conflicts(['rounds, round, block'])
-				.argParser(cliParseInt)
-		)
 		.action(run)
 
 	await program.parseAsync(process.argv)
 }
 
 main()
-
-async function postgres_test() {
-	const client = new Client(DbConfig)
-	await client.connect()
-
-	const res = await client.query('SELECT $1::text as message', ['Hello world!'])
-	console.log(res.rows[0].message) // Hello world!
-	await client.end()
-}

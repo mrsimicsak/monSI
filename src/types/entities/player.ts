@@ -84,9 +84,9 @@ export class Player {
 
 		client.query(
 			`INSERT INTO public.player_action_log(
-			player, action, block)
-			VALUES ($1::text, $2::bigint, $3::bigint);`,
-			[this.overlay, 5, block.blockNo]
+			player, action, block,round)
+			VALUES ($1::text, $2::bigint, $3::bigint, $4::bigint);`,
+			[this.overlay, 5, block.blockNo, Round.roundFromBlock(block.blockNo)]
 		)
 	}
 
@@ -122,14 +122,15 @@ export class Player {
 
 		client.query(
 			`INSERT INTO public.player_action_log(
-			player, action, block, value_change, value)
-			VALUES ($1::text, $2::bigint, $3::bigint, $4::bigint, $5::bigint);`,
+			player, action, block, value_change, value,round)
+			VALUES ($1::text, $2::bigint, $3::bigint, $4::bigint, $5::bigint, $6::bigint);`,
 			[
 				this.overlay,
 				2,
 				block.blockNo,
 				_amount.toBigInt(),
 				this.amount.toBigInt(),
+				Round.roundFromBlock(block.blockNo),
 			]
 		)
 	}
@@ -150,9 +151,9 @@ export class Player {
 
 		client.query(
 			`INSERT INTO public.player_action_log(
-			player, action, block)
-			VALUES ($1::text, $2::bigint, $3::bigint);`,
-			[this.overlay, 6, block.blockNo]
+			player, action, block,round)
+			VALUES ($1::text, $2::bigint, $3::bigint,$4::bigint);`,
+			[this.overlay, 6, block.blockNo, Round.roundFromBlock(block.blockNo)]
 		)
 
 		Logging.showError(
@@ -213,6 +214,19 @@ export class Player {
 		} else this.stake = BigNumber.from(0)
 		this.slashCount++
 		this.stakeChangeCount++
+
+		client.query(
+			`INSERT INTO public.player_action_log(
+			player, action, block, value,round)
+			VALUES ($1::text, $2::bigint, $3::bigint, $4::numeric, $4::bigint);`,
+			[
+				this.overlay,
+				7,
+				block.blockNo,
+				amount.toString(),
+				Round.roundFromBlock(block.blockNo),
+			]
+		)
 
 		Logging.showError(
 			`${this.overlayString()} {red-fg}Slashed{/red-fg} ${shortBZZ(

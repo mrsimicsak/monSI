@@ -151,6 +151,7 @@ export class ChainSync {
 	}
 
 	private async syncBlockchain(startFromBlock: number, endingBlock?: number) {
+		// deterime which round the specified block is in, then find first block for that round
 		startFromBlock =
 			Math.floor(startFromBlock / config.game.blocksPerRound) *
 			config.game.blocksPerRound
