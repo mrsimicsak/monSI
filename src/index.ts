@@ -8,6 +8,13 @@ import { ChainSync } from './chain'
 import { SchellingGame } from './types/entities'
 import { utils } from 'ethers'
 
+import pkg from 'pg'
+const { Client } = pkg
+
+export const client = new Client(DbConfig)
+
+import { DbConfig } from './dbconfig'
+
 // sane defaults for the environment variables (if not set)
 const DEFAULT_PRELOAD_ROUNDS = 4
 const DEFAULT_RPC_ENDPOINT = 'ws://localhost:8545'
@@ -28,6 +35,8 @@ interface CLIOptions {
  */
 async function run(overlays: string[], options: CLIOptions) {
 	const { mainnet, rpcEndpoint, rounds, block, round, singleRound } = options
+
+	await client.connect()
 
 	// Set the chain ID
 	config.setChainId(100)
@@ -144,3 +153,12 @@ async function main() {
 }
 
 main()
+
+async function postgres_test() {
+	const client = new Client(DbConfig)
+	await client.connect()
+
+	const res = await client.query('SELECT $1::text as message', ['Hello world!'])
+	console.log(res.rows[0].message) // Hello world!
+	await client.end()
+}

@@ -4,6 +4,7 @@ import config from '../../config'
 import { BlockDetails } from '../../chain'
 import { fmtOverlay, shortBZZ } from '../../lib'
 import { Round } from './round'
+import { client } from '../../'
 
 export class Player {
 	private _overlay: string // overlay of the bee node
@@ -80,6 +81,13 @@ export class Player {
 		}
 
 		console.log(block.blockNo, this.overlay, 'commit')
+
+		client.query(
+			`INSERT INTO public.player_action_log(
+			player, action, block)
+			VALUES ($1::text, $2::bigint, $3::bigint);`,
+			[this.overlay, 5, block.blockNo]
+		)
 	}
 
 	reveal(block: BlockDetails, round: number, hash: string, depth: number) {
@@ -89,6 +97,13 @@ export class Player {
 		this.reveals[round] = { hash, depth }
 
 		console.log(block.blockNo, this.overlay, 'reveal')
+
+		client.query(
+			`INSERT INTO public.player_action_log(
+			player, action, block, round)
+			VALUES ($1::text, $2::bigint, $3::bigint, $4::bigint);`,
+			[this.overlay, 3, block.blockNo, round]
+		)
 	}
 
 	/**
@@ -104,6 +119,19 @@ export class Player {
 		this.winCount++
 
 		console.log(block.blockNo, this.overlay, 'claim')
+
+		client.query(
+			`INSERT INTO public.player_action_log(
+			player, action, block, value_change, value)
+			VALUES ($1::text, $2::bigint, $3::bigint, $4::bigint, $5::bigint);`,
+			[
+				this.overlay,
+				2,
+				block.blockNo,
+				_amount.toBigInt(),
+				this.amount.toBigInt(),
+			]
+		)
 	}
 
 	/**
@@ -119,6 +147,13 @@ export class Player {
 		const elapsed = thawBlock - block.blockNo
 
 		console.log(block.blockNo, this.overlay, 'frozen')
+
+		client.query(
+			`INSERT INTO public.player_action_log(
+			player, action, block)
+			VALUES ($1::text, $2::bigint, $3::bigint);`,
+			[this.overlay, 6, block.blockNo]
+		)
 
 		Logging.showError(
 			`${this.overlayString()} {blue-fg}Frozen{/blue-fg} for ${elapsed} blocks or ${
@@ -136,6 +171,20 @@ export class Player {
 
 		this.stake = amount
 		this.stakeChangeCount++
+
+		console.log(
+			block.blockNo,
+			this.overlay,
+			'stake change, now: ',
+			shortBZZ(this.stake)
+		)
+
+		client.query(
+			`INSERT INTO public.player_action_log(
+			player, action, block, value)
+			VALUES ($1::text, $2::bigint, $3::bigint, $4::numeric);`,
+			[this.overlay, 1, block.blockNo, amount.toString()]
+		)
 
 		Logging.showError(
 			`${this.overlayString()} Stake Updated ${shortBZZ(amount)} now ${shortBZZ(
