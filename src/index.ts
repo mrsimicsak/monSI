@@ -54,10 +54,10 @@ async function run(overlays: string[], options: CLIOptions) {
 	// initialiaze ChainSync
 	await chainsync.init(rpcEndpoint)
 
-	let startBlock = await chainsync.getCurrentBlock()
-	console.log('Current block is: ', startBlock)
+	let endBlock = await chainsync.getCurrentBlock()
+	console.log('Current block is: ', endBlock)
 
-	let endBlock
+	let startBlock
 
 	try {
 		console.log('Attempting to retrive last block from database.')
@@ -66,32 +66,40 @@ async function run(overlays: string[], options: CLIOptions) {
 		)
 
 		if (results.rowCount > 0) {
-			endBlock = results.rows[0].block + 1
-			console.log('resuming from block: ', endBlock)
+			startBlock = parseInt(results.rows[0].block) + 1
+			console.log('resuming from block: ', startBlock)
 		} else {
-			endBlock = 25527075 // mainnet staking contract creation
-			console.log('No blocks found in database, starting from: ', endBlock)
+			startBlock = 25527075 // mainnet staking contract creation
+			console.log('No blocks found in database, starting from: ', startBlock)
 		}
 	} catch (err) {
 		Logging.showError(`Failed to load last block from database: ${err}`)
 		process.exit(1)
 	}
 
-	console.log('Need to sync ', startBlock - endBlock, ' blocks')
+	console.log(
+		'Starting from block: ',
+		startBlock,
+		', ending at: ',
+		endBlock,
+		'. Syncing ',
+		endBlock - startBlock,
+		' blocks,'
+	)
 	let startingRound = Round.roundFromBlock(startBlock)
 	let endingRound = Round.roundFromBlock(endBlock)
 	console.log(
 		'Starting from round: ',
-		endingRound,
-		', ending at: ',
 		startingRound,
+		', ending at: ',
+		endingRound,
 		', Syncing ',
-		startingRound - endingRound,
+		endingRound - startingRound,
 		' rounds.'
 	)
 
 	// start the chain sync
-	chainsync.start(endBlock, startBlock)
+	chainsync.start(startBlock, endBlock)
 
 	// start the game
 	const game = SchellingGame.getInstance()
@@ -101,15 +109,6 @@ async function run(overlays: string[], options: CLIOptions) {
 			game.highlightOverlay(overlay)
 		}
 	}
-}
-
-function cliParseInt(value: string, _: unknown): number {
-	// parseInt takes a string and an optional radix
-	const parsedValue = parseInt(value, 10)
-	if (isNaN(parsedValue)) {
-		throw new InvalidOptionArgumentError('Not a number.')
-	}
-	return parsedValue
 }
 
 function cliParseOverlay(overlay: string, previous: string[]): string[] {
