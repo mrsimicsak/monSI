@@ -1,84 +1,35 @@
-# monsi
+# Intro
 
-A monitor for the upcoming Storage Incentives (SI) for the Ethersphere Bee swarm written in Typescript for node.js
+Export Storage Incentives (SI) events for the Ethersphere Bee swarm to a postgres database. Written in Typescript for node.js
 
-![monsi Terminal User Interface!](/assets/screenshot.png 'monsi TUI')
+## Prerequisites
 
-## Installing node / npm packages
+node v18 or higher
 
-To get started the following commands, or their equivalents, should work if you don't already have node and/or `npm`
-
-```bash
-sudo apt-get install nodejs
-sudo apt-get install npm
-```
-
-Or for Windows or macOS, https://nodejs.org/en/download/
-
-You'll also need git to clone this repository: https://git-scm.com/download/win
-
-## Installation of monsi
-
-monsi is available for install as a standard `npmjs` package for *non-Windows* users. Once you have `node` and `npm` installed, you can install `monsi` simply by:
-
-```bash
-npm install -g "@rndlabs/monsi"
-```
-
-This will install the package and make available the `monsi` symlink on your command line environment's path.
-
-*Windows* users will need to follow the [Extending / developing monsi](#extending--developing-monsi) instructions below.
-
-### Configuring
-
-All parameters can be specified on the command line and some are supported in environment values (or `.env` file)
+Then install libraries with ```npm install```.
 
 ### Running
 
-Finally, to run `monsi`, use the following command in a shell or command prompt window:
+First create a dbconfig.ts file in src with the following:
+
+```typescript
+export const DbConfig = {
+    "host":"<hostname>",
+    "user":"<username>",
+    "password":"<password>",
+    'database':"swarm"
+}
+```
+Then run it with:
 
 ```bash
-monsi --rpc-endpoint ws://<YourGoerliRPCIP:port>
+node --experimental-specifier-resolution=node --loader=ts-node/esm ./src/index.ts --rpc-endpoint ws://<YourRPCIP:port>
 ```
 
-This command will compile the typescript application and run it. Your screen should clear and boxes should appear with values. monsi defaults to going back 4 complete Schelling game rounds at startup. It also loads ALL stake events from the blockchain on every invocation.
+### Extending / developing this
 
-### Usage
+If you're developing and want to build / extend on this feel free! You may submit pull requests and issues but they will mosty likely be ignored, I hacked this together for fun and my own personal use and do not have the time or inclicantion to maintain or support a project.
 
-```
-Monitor Storage Incentives for Swarm
-
-Arguments:
-  overlays                   Overlay addresses for highlighting
-
-Options:
-  -V, --version              output the version number
-  --mainnet                  Use Swarm mainnet (default: false)
-  --rpc-endpoint <string>    RPC endpoint for the blockchain node (default: "ws://goerli-geth.dappnode:8546", env:
-                             RPC_URL)
-  -r, --rounds [rounds]      Load the last number of rounds from the blockchain (default: 4)
-  -b, --block [block]        Block number to start loading from
-  -R, --round [round]        Round number to start loading from
-  -S, --singleRound [round]  Load a single round and stop
-  -h, --help                 display help for command
-```
-
-### Extending / developing monsi
-
-If you're developing and want to build / extend on monsi - first, thank you! Community development and pull requests are always appreciated ❤️. To get started quickly developing:
-
-```bash
-git clone https://github.com/rndlabs/monsi # clone the source to your disk
-npm i # install npm dependencies
-```
-
-After you have made the modifications for your PR / branch, you may start `monsi` using `ts-node` by:
-
-```bash
-node --experimental-specifier-resolution=node --loader=ts-node/esm ./src/index.ts --rpc-endpoint ws://<YourGoerliRPCIP:port>
-```
-
-monsi uses [blessed](https://www.npmjs.com/package/blessed) for drawing its TUI (Text User Interface) and [ethers](https://docs.ethers.io/) for blockchain RPC
 
 ## Acknowledgements
 
@@ -88,4 +39,4 @@ monsi was originally written by @ldeffenb and was heavily based on monBee. @mfw7
 
 Just don't run monsi for a long time if you use infura.io's (or any other provider's) free account because monsi monitors every single block and will eat up your 100,000 API hits in short order. No gETH, but every query is counted at infura.io, and monsi does LOTS of blockchain queries!
 
-Having your own local goerli (gnosis in the future) RPC provider is **strongly** recommended!
+Having your own local RPC provider is **strongly** recommended!
