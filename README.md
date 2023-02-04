@@ -20,6 +20,9 @@ export const DbConfig = {
     'database':"swarm"
 }
 ```
+Then create the database and tables:
+TODO
+
 Then run it with:
 
 ```bash
