@@ -151,14 +151,6 @@ export class ChainSync {
 	}
 
 	private async syncBlockchain(startFromBlock: number, endingBlock?: number) {
-		// deterime which round the specified block is in, then find first block for that round
-		startFromBlock =
-			Math.floor(startFromBlock / config.game.blocksPerRound) *
-			config.game.blocksPerRound
-
-		Logging.showLogError(
-			`Loading StakeRegistry logs from block ${config.contracts.stakeDeployBlock}`
-		)
 		const start = Date.now()
 		// 1. Process all `StakeUpdated` and `StakeSlashed` events as this determines who is in the game.
 		if (config.contracts.stakeDeployBlock > 0) {
@@ -172,7 +164,8 @@ export class ChainSync {
 						],
 					],
 				},
-				config.contracts.stakeDeployBlock
+				startFromBlock,
+				endingBlock
 			)
 			// now process the logs and add players to the game
 			await this.processStakeLog(stakeLogs)

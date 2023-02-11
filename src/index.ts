@@ -99,7 +99,7 @@ async function run(overlays: string[], options: CLIOptions) {
 	)
 
 	// start the chain sync
-	chainsync.start(startBlock, endBlock)
+	chainsync.start(startBlock)
 
 	// start the game
 	const game = SchellingGame.getInstance()
