@@ -2,8 +2,8 @@ import { currentLocalTime, specificLocalTime } from '../lib'
 
 export default class Logging {
 	private static instance: Logging
-	private _debugging = false // Controls all showError logging to stderr (extensive)
-	private _errorLogEnabled = true && !process.stderr.isTTY // Controls showLog* logging to stderr (less stuff)
+	private _debugging = true // Controls all showError logging to stderr (extensive)
+	private _errorLogEnabled = true // Controls showLog* logging to stderr (less stuff)
 	private _lastErrorTag = ''
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
